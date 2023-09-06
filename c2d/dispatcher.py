@@ -2,6 +2,7 @@ from ocean_lib.example_config import get_config_dict
 from ocean_lib.ocean.ocean import Ocean
 from ocean_lib.ocean.util import to_wei
 from ocean_lib.structures.file_objects import UrlFile
+from datetime import datetime
 
 # Create Ocean instance
 config = get_config_dict("mumbai")
@@ -11,12 +12,9 @@ ocean = Ocean(config)
 OCEAN = ocean.OCEAN_token
 
 
-# Publish data NFT, datatoken, and asset for dataset based on url
-
-def publish_data(from_wallet):
-    # ocean.py offers multiple file object types. A simple url file is enough for here
-    # Specify metadata, using the iris dataset
-    data_date_created = "2019-12-28T10:55:11Z"
+def publish_data(from_wallet, data_url):
+    current_utc_time = datetime.utcnow()
+    data_date_created = current_utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
     data_metadata = {
         "created": data_date_created,
         "updated": data_date_created,
@@ -28,22 +26,21 @@ def publish_data(from_wallet):
     }
 
     # ocean.py offers multiple file types, but a simple url file should be enough for this example
-    data_url_file = UrlFile(
-        url="https://raw.githubusercontent.com/oceanprotocol/c2d-examples/main/iris_and_logisitc_regression/dataset_61_iris.csv"
-    )
+    data_url_file = UrlFile(url=data_url)
 
     (data_data_nft, data_datatoken, data_ddo) = ocean.assets.create_url_asset(*data_metadata, data_url_file.url,
                                                                               {"from": from_wallet},
                                                                               with_compute=True, wait_for_aqua=True)
     print(f"DATA_data_nft address = '{data_data_nft.address}'")
     print(f"DATA_datatoken address = '{data_datatoken.address}'")
-
     print(f"DATA_ddo did = '{data_ddo.did}'")
 
+    return data_data_nft, data_datatoken, data_ddo
 
-def publish_algo(from_wallet):
-    # Specify metadata, using the Logistic Regression algorithm
-    algo_date_created = "2020-01-28T10:55:11Z"
+
+def publish_algo(from_wallet, container_metadata):
+    current_utc_time = datetime.utcnow()
+    algo_date_created = current_utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
     algo_metadata = {
         "created": algo_date_created,
         "updated": algo_date_created,
@@ -56,23 +53,11 @@ def publish_algo(from_wallet):
             "language": "python",
             "format": "docker-image",
             "version": "0.1",
-            "container": {
-                "entrypoint": "python $ALGO",
-                "image": "oceanprotocol/algo_dockers",
-                "tag": "python-panda",
-                # This image provides all the dependencies of the logistic_regression.py algorithm
-                "checksum": "sha256:7fc268f502935d11ff50c54e3776dda76477648d5d83c2e3c4fdab744390ecf2",
-            },
+            "container": container_metadata,
         }
     }
 
-    # ocean.py offers multiple file types, but a simple url file should be enough for this example
-    from ocean_lib.structures.file_objects import UrlFile
-    algo_url_file = UrlFile(
-        url="https://raw.githubusercontent.com/oceanprotocol/c2d-examples/main/iris_and_logisitc_regression/logistic_regression.py"
-    )
-
-    (algo_data_nft, algo_datatoken, algo_ddo) = ocean.assets.create_algo_asset(*algo_metadata, algo_url_file.url,
+    (algo_data_nft, algo_datatoken, algo_ddo) = ocean.assets.create_algo_asset(*algo_metadata,
                                                                                {"from": from_wallet},
                                                                                wait_for_aqua=True)
 
@@ -80,18 +65,21 @@ def publish_algo(from_wallet):
     print(f"ALGO_datatoken address = '{algo_datatoken.address}'")
     print(f"ALGO_ddo did = '{algo_ddo.did}'")
 
-
-def allow_algo_to_data(DATA_ddo, ALGO_ddo, from_wallet):
-    compute_service = DATA_ddo.services[1]
-    compute_service.add_publisher_trusted_algorithm(ALGO_ddo)
-    data_ddo = ocean.assets.update(DATA_ddo, {"from": from_wallet})
+    return algo_data_nft, algo_datatoken, algo_ddo
 
 
-def acquire_tokens(DATA_datatoken, ALGO_datatoken, from_wallet, to_wallet):
+def allow_algo_to_data(data_ddo, algo_ddo, from_wallet):
+    compute_service = data_ddo.services[1]
+    compute_service.add_publisher_trusted_algorithm(algo_ddo)
+    data_ddo = ocean.assets.update(data_ddo, {"from": from_wallet})
+    return data_ddo
+
+
+def acquire_tokens(data_datatoken, algo_datatoken, from_wallet, to_wallet):
     # Alice mints DATA datatokens and ALGO datatokens to Bob.
     # Alternatively, Bob might have bought these in a market.
-    DATA_datatoken.mint(to_wallet, to_wei(5), {"from": from_wallet})
-    ALGO_datatoken.mint(to_wallet, to_wei(5), {"from": from_wallet})
+    data_datatoken.mint(to_wallet, to_wei(5), {"from": from_wallet})
+    algo_datatoken.mint(to_wallet, to_wei(5), {"from": from_wallet})
 
 
 def start_compute_job(data_did, algo_did, consumer_wallet):
@@ -130,3 +118,4 @@ def start_compute_job(data_did, algo_did, consumer_wallet):
         algorithm=algorithm,
     )
     print(f"Started compute job with id: {job_id}")
+    return job_id, compute_service
