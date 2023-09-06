@@ -38,7 +38,8 @@ def publish_data(from_wallet, data_url):
     # print(f"DATA_ddo did = '{data_ddo.did}'")
 
     # create data asset
-    (data_nft, datatoken, ddo) = ocean.assets.create_url_asset("example3", data_url, {"from": from_wallet})
+    (data_nft, datatoken, ddo) = ocean.assets.create_url_asset("example6", data_url, {"from": from_wallet},
+                                                               with_compute=True, wait_for_aqua=True)
 
     # print
     print("Just published asset:")
@@ -55,10 +56,10 @@ def publish_algo(from_wallet, container_metadata):
     algo_metadata = {
         "created": algo_date_created,
         "updated": algo_date_created,
-        "description": "Logistic Regression",
-        "name": "Logistic Regression",
+        "description": "Example Algorithm for SDA Hockey C2D",
+        "name": "Example Algorithm",
         "type": "algorithm",
-        "author": "Ocean Protocol & Raven Protocol",
+        "author": "",
         "license": "MIT",
         "algorithm": {
             "language": "python",
@@ -67,12 +68,9 @@ def publish_algo(from_wallet, container_metadata):
             "container": container_metadata,
         },
     }
-    (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("example3",
+    (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("example6",
                                                                 url="",
                                                                 tx_dict={"from": from_wallet},
-                                                                # image=container_metadata["image"],
-                                                                # tag=container_metadata["tag"],
-                                                                # checksum=container_metadata["checksum"],
                                                                 metadata=algo_metadata,
                                                                 wait_for_aqua=True)
 
