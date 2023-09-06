@@ -3,6 +3,7 @@ from ocean_lib.ocean.ocean import Ocean
 from ocean_lib.ocean.util import to_wei
 from ocean_lib.structures.file_objects import UrlFile
 from datetime import datetime
+from ocean_lib.models.datatoken_base import DatatokenArguments
 
 # Create Ocean instance
 config = get_config_dict("mumbai")
@@ -13,29 +14,39 @@ OCEAN = ocean.OCEAN_token
 
 
 def publish_data(from_wallet, data_url):
-    current_utc_time = datetime.utcnow()
-    data_date_created = current_utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-    data_metadata = {
-        "created": data_date_created,
-        "updated": data_date_created,
-        "description": "The Iris flower dataset is a multivariate dataset to train classification algorithms",
-        "name": "Iris Flower Dataset",
-        "type": "dataset",
-        "author": "Ocean Protocol & Raven Protocol",
-        "license": "MIT",
-    }
-
     # ocean.py offers multiple file types, but a simple url file should be enough for this example
-    data_url_file = UrlFile(url=data_url)
 
-    (data_data_nft, data_datatoken, data_ddo) = ocean.assets.create_url_asset(*data_metadata, data_url_file.url,
-                                                                              {"from": from_wallet},
-                                                                              with_compute=True, wait_for_aqua=True)
-    print(f"DATA_data_nft address = '{data_data_nft.address}'")
-    print(f"DATA_datatoken address = '{data_datatoken.address}'")
-    print(f"DATA_ddo did = '{data_ddo.did}'")
+    # current_utc_time = datetime.utcnow()
+    # data_date_created = current_utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+    # data_metadata = {
+    #     "created": data_date_created,
+    #     "updated": data_date_created,
+    #     "description": "The Iris flower dataset is a multivariate dataset to train classification algorithms",
+    #     "name": "Iris Flower Dataset",
+    #     "type": "dataset",
+    #     "author": "Ocean Protocol & Raven Protocol",
+    #     "license": "MIT",
+    # }
+    #
+    # data_url_file = UrlFile(url=data_url)
+    #
+    # (data_data_nft, data_datatoken, data_ddo) = ocean.assets.create(data_metadata,
+    #                                                                 {"from": from_wallet},
+    #                                                                 datatoken_args=[
+    #                                                                     DatatokenArguments(files=[data_url_file])], )
+    # print(f"DATA_data_nft address = '{data_data_nft.address}'")
+    # print(f"DATA_ddo did = '{data_ddo.did}'")
 
-    return data_data_nft, data_datatoken, data_ddo
+    # create data asset
+    (data_nft, datatoken, ddo) = ocean.assets.create_url_asset("example2", data_url, {"from": from_wallet})
+
+    # print
+    print("Just published asset:")
+    print(f"  data_nft: symbol={data_nft.symbol()}, address={data_nft.address}")
+    print(f"  datatoken: symbol={datatoken.symbol()}, address={datatoken.address}")
+    print(f"  did={ddo.did}")
+
+    return data_nft, datatoken, ddo
 
 
 def publish_algo(from_wallet, container_metadata):
@@ -54,22 +65,26 @@ def publish_algo(from_wallet, container_metadata):
             "format": "docker-image",
             "version": "0.1",
             "container": container_metadata,
-        }
+        },
     }
+    (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("example2",
+                                                                url="",
+                                                                tx_dict={"from": from_wallet},
+                                                                # image=container_metadata["image"],
+                                                                # tag=container_metadata["tag"],
+                                                                # checksum=container_metadata["checksum"],
+                                                                metadata=algo_metadata,
+                                                                wait_for_aqua=True)
 
-    (algo_data_nft, algo_datatoken, algo_ddo) = ocean.assets.create_algo_asset(*algo_metadata,
-                                                                               {"from": from_wallet},
-                                                                               wait_for_aqua=True)
+    print(f"ALGO_data_nft address = '{data_nft.address}'")
+    print(f"ALGO_datatoken address = '{datatoken.address}'")
+    print(f"ALGO_ddo did = '{ddo.did}'")
 
-    print(f"ALGO_data_nft address = '{algo_data_nft.address}'")
-    print(f"ALGO_datatoken address = '{algo_datatoken.address}'")
-    print(f"ALGO_ddo did = '{algo_ddo.did}'")
-
-    return algo_data_nft, algo_datatoken, algo_ddo
+    return data_nft, datatoken, ddo
 
 
 def allow_algo_to_data(data_ddo, algo_ddo, from_wallet):
-    compute_service = data_ddo.services[1]
+    compute_service = data_ddo.services[0]
     compute_service.add_publisher_trusted_algorithm(algo_ddo)
     data_ddo = ocean.assets.update(data_ddo, {"from": from_wallet})
     return data_ddo
