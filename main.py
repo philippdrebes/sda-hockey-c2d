@@ -46,28 +46,18 @@ def publish_and_run():
     assert OCEAN.balanceOf(algo_wallet) > 0, "algo_wallet needs OCEAN"
 
     # Publish data
-    if data_exists_on_disk(DATA_FILE_PATH):
-        (data_data_nft, data_datatoken, data_ddo) = load_from_disk(DATA_FILE_PATH)
-    else:
-        # Publish data NFT, datatoken, and asset for dataset based on url
-        data_url = "https://raw.githubusercontent.com/oceanprotocol/c2d-examples/main/iris_and_logisitc_regression/dataset_61_iris.csv"
-        (data_data_nft, data_datatoken, data_ddo) = dispatcher.publish_data(data_wallet, data_url)
-        save_to_disk((data_data_nft, data_datatoken, data_ddo), DATA_FILE_PATH)
+    data_url = "https://raw.githubusercontent.com/oceanprotocol/c2d-examples/main/iris_and_logisitc_regression/dataset_61_iris.csv"
+    (data_data_nft, data_datatoken, data_ddo) = dispatcher.publish_data(data_wallet, data_url)
 
     # Publish algorithm
+    container_metadata = {
+        "entrypoint": "python algos/example_algo.py",
+        "image": "ghcr.io/philippdrebes/sda-hockey-c2d",
+        "tag": "main",
+        "checksum": "sha256:d91a2fe9524c679a920b39f4f2070180bf4a8321438ca2b8353b2ca64106fd19",
+    }
 
-    if data_exists_on_disk(ALGO_FILE_PATH):
-        (algo_data_nft, algo_datatoken, algo_ddo) = load_from_disk(ALGO_FILE_PATH)
-    else:
-        container_metadata = {
-            "entrypoint": "python algos/example_algo.py",
-            "image": "ghcr.io/philippdrebes/sda-hockey-c2d",
-            "tag": "main",
-            "checksum": "sha256:d91a2fe9524c679a920b39f4f2070180bf4a8321438ca2b8353b2ca64106fd19",
-        }
-
-        (algo_data_nft, algo_datatoken, algo_ddo) = dispatcher.publish_algo(algo_wallet, container_metadata)
-        save_to_disk((algo_data_nft, algo_datatoken, algo_ddo), ALGO_FILE_PATH)
+    (algo_data_nft, algo_datatoken, algo_ddo) = dispatcher.publish_algo(algo_wallet, container_metadata)
 
     data_ddo = dispatcher.allow_algo_to_data(data_ddo, algo_ddo, data_wallet)
     dispatcher.acquire_tokens(data_datatoken, algo_datatoken, data_wallet, algo_wallet)

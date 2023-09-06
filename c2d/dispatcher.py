@@ -38,7 +38,7 @@ def publish_data(from_wallet, data_url):
     # print(f"DATA_ddo did = '{data_ddo.did}'")
 
     # create data asset
-    (data_nft, datatoken, ddo) = ocean.assets.create_url_asset("example2", data_url, {"from": from_wallet})
+    (data_nft, datatoken, ddo) = ocean.assets.create_url_asset("example3", data_url, {"from": from_wallet})
 
     # print
     print("Just published asset:")
@@ -67,7 +67,7 @@ def publish_algo(from_wallet, container_metadata):
             "container": container_metadata,
         },
     }
-    (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("example2",
+    (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("example3",
                                                                 url="",
                                                                 tx_dict={"from": from_wallet},
                                                                 # image=container_metadata["image"],
@@ -84,7 +84,7 @@ def publish_algo(from_wallet, container_metadata):
 
 
 def allow_algo_to_data(data_ddo, algo_ddo, from_wallet):
-    compute_service = data_ddo.services[0]
+    compute_service = data_ddo.services[1]
     compute_service.add_publisher_trusted_algorithm(algo_ddo)
     data_ddo = ocean.assets.update(data_ddo, {"from": from_wallet})
     return data_ddo
