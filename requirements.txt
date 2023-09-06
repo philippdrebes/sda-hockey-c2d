@@ -1,2 +1,4 @@
 pandas==2.1.0
 numpy==1.25.2
+ocean-lib
+wheel
