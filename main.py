@@ -106,11 +106,9 @@ def run(data_ddo, algo_ddo, algo_wallet):
         time.sleep(5)
 
     # Retrieve algorithm output and log files
-    output = ocean.compute.compute_job_result_logs(
-        data_ddo, compute_service, job_id, algo_wallet
-    )[0]
+    output = ocean.compute.compute_job_result_logs(data_ddo, compute_service, job_id, algo_wallet)
 
-    model = pickle.loads(output)  # the result
+    model = pickle.loads(output[0])  # the result
     assert len(model) > 0, "unpickle result unsuccessful"
 
 
