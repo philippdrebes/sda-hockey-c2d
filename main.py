@@ -15,23 +15,6 @@ ocean = Ocean(config)
 # Create OCEAN object. ocean_lib knows where OCEAN is on all remote networks
 OCEAN = ocean.OCEAN_token
 
-DATA_FILE_PATH = "data_vars.pkl"
-ALGO_FILE_PATH = "algo_vars.pkl"
-
-
-def save_to_disk(variables, path):
-    with open(path, 'wb') as f:
-        pickle.dump(variables, f)
-
-
-def load_from_disk(path):
-    with open(path, 'rb') as f:
-        return pickle.load(f)
-
-
-def data_exists_on_disk(path):
-    return os.path.exists(path)
-
 
 def publish_and_run():
     # Create wallets
@@ -46,18 +29,11 @@ def publish_and_run():
     assert OCEAN.balanceOf(algo_wallet) > 0, "algo_wallet needs OCEAN"
 
     # Publish data
-    data_url = "https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/dummy%20data/dummy_data_complete.csv"
+    data_url = "https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/data/dummy_data_complete.csv"
     (data_data_nft, data_datatoken, data_ddo) = dispatcher.publish_data(data_wallet, data_url)
 
     # Publish algorithm
-    container_metadata = {
-        "entrypoint": "python algos/example_algo.py",
-        "image": "ghcr.io/philippdrebes/sda-hockey-c2d",
-        "tag": "main",
-        "checksum": "sha256:d91a2fe9524c679a920b39f4f2070180bf4a8321438ca2b8353b2ca64106fd19",
-    }
-
-    (algo_data_nft, algo_datatoken, algo_ddo) = dispatcher.publish_algo(data_wallet, container_metadata)
+    (algo_data_nft, algo_datatoken, algo_ddo) = dispatcher.publish_algo(data_wallet)
 
     data_ddo = dispatcher.allow_algo_to_data(data_ddo, algo_ddo, data_wallet)
     dispatcher.acquire_tokens(data_datatoken, algo_datatoken, data_wallet, algo_wallet)
