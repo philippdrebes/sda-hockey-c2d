@@ -24,6 +24,8 @@ def main():
     # Add arguments to the parser
     parser.add_argument("-a", "--algo_did", type=str, help="DID for the algorithm")
     parser.add_argument("-d", "--data_did", type=str, help="DID for the data")
+    parser.add_argument("-f", "--file", action="store_true",
+                        help="Boolean flag to determine if algorithm and data should be loaded from disk")
     parser.add_argument("-p", "--publish", action="store_true",
                         help="Boolean flag to determine if data should be published")
 
@@ -35,11 +37,9 @@ def main():
 
     if args.publish and (args.algo_did or args.data_did):
         raise Exception("Cannot publish and load from disk at the same time")
-    if not args.publish and not (args.algo_did and args.data_did):
+    if not args.publish and not args.file:
         raise Exception("Must either publish or load from disk")
-    if args.publish and data_exists_on_disk(SAVE_FILE_PATH):
-        raise Exception("Cannot publish if data already exists on disk")
-    if not args.publish and not data_exists_on_disk(SAVE_FILE_PATH):
+    if not args.publish and args.file and not data_exists_on_disk(SAVE_FILE_PATH):
         raise Exception("Cannot load from disk if no data exists on disk")
     if args.publish and not (os.getenv('REMOTE_TEST_PRIVATE_KEY1') and os.getenv('REMOTE_TEST_PRIVATE_KEY2')):
         raise Exception("Cannot publish if no private keys are set")
