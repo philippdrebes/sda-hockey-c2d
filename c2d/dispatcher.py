@@ -1,10 +1,6 @@
 from ocean_lib.example_config import get_config_dict
 from ocean_lib.ocean.ocean import Ocean
-from ocean_lib.ocean.ocean_assets import OceanAssets
 from ocean_lib.ocean.util import to_wei
-from ocean_lib.structures.file_objects import UrlFile
-from datetime import datetime
-from ocean_lib.models.datatoken_base import DatatokenArguments
 
 # Create Ocean instance
 config = get_config_dict("mumbai")
@@ -15,10 +11,10 @@ OCEAN = ocean.OCEAN_token
 
 
 def publish_data(from_wallet, data_url):
-    (data_nft, datatoken, ddo) = ocean.assets.create_url_asset("example", data_url, {"from": from_wallet},
+    (data_nft, datatoken, ddo) = ocean.assets.create_url_asset("Ice Hockey Data", data_url, {"from": from_wallet},
                                                                with_compute=True, wait_for_aqua=True)
 
-    print("Just published asset:")
+    print("Just published asset (data):")
     print(f"  data_nft: symbol={data_nft.symbol()}, address={data_nft.address}")
     print(f"  datatoken: symbol={datatoken.symbol()}, address={datatoken.address}")
     print(f"  did={ddo.did}")
@@ -27,53 +23,18 @@ def publish_data(from_wallet, data_url):
 
 
 def publish_algo(from_wallet):
-    current_utc_time = datetime.utcnow()
-    algo_date_created = current_utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-    metadata = OceanAssets.default_metadata("Example Algorithm", {"from": from_wallet}, "algorithm")
-    metadata["algorithm"] = {
-        "language": "python",
-        "format": "docker-image",
-        "version": "0.1",
-        "container": {
-            "entrypoint": "python algos/example_algo.py",
-            "image": "ghcr.io/philippdrebes/sda-hockey-c2d",
-            "tag": "main",
-            "checksum": "sha256:d91a2fe9524c679a920b39f4f2070180bf4a8321438ca2b8353b2ca64106fd19",
-        },
-    }
-    algo_metadata = {
-        "created": algo_date_created,
-        "updated": algo_date_created,
-        "description": "Example Algorithm for SDA Hockey C2D",
-        "name": "Example Algorithm",
-        "type": "algorithm",
-        "author": "asdf",
-        "license": "MIT",
-        "algorithm": {
-            "language": "python",
-            "format": "docker-image",
-            "version": "0.1",
-            "container": {
-                "entrypoint": "python algos/example_algo.py",
-                "image": "ghcr.io/philippdrebes/sda-hockey-c2d",
-                "tag": "main",
-                "checksum": "sha256:d91a2fe9524c679a920b39f4f2070180bf4a8321438ca2b8353b2ca64106fd19",
-            },
-        },
-    }
-
-    (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("example6",
+    (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("Ice Hockey C2D",
                                                                 url="https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/algos/example_algo.py",
                                                                 tx_dict={"from": from_wallet},
                                                                 image="ghcr.io/philippdrebes/sda-hockey-c2d",
                                                                 checksum="sha256:d91a2fe9524c679a920b39f4f2070180bf4a8321438ca2b8353b2ca64106fd19",
                                                                 tag="main",
-                                                                # metadata=metadata,
                                                                 wait_for_aqua=True)
 
-    print(f"ALGO_data_nft address = '{data_nft.address}'")
-    print(f"ALGO_datatoken address = '{datatoken.address}'")
-    print(f"ALGO_ddo did = '{ddo.did}'")
+    print("Just published asset (algo):")
+    print(f"  data_nft: symbol={data_nft.symbol()}, address={data_nft.address}")
+    print(f"  datatoken: symbol={datatoken.symbol()}, address={datatoken.address}")
+    print(f"  did={ddo.did}")
 
     return data_nft, datatoken, ddo
 
