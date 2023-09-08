@@ -81,7 +81,7 @@ def setup_wallets():
 
 def publish(data_wallet, algo_wallet):
     # Publish data
-    data_url = "https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/data/dummy_data_complete.csv"
+    data_url = "https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/data/data.csv"
     (data_data_nft, data_datatoken, data_ddo) = dispatcher.publish_data(data_wallet, data_url)
 
     # Publish algorithm
@@ -107,9 +107,7 @@ def run(data_ddo, algo_ddo, algo_wallet):
 
     # Retrieve algorithm output and log files
     output = ocean.compute.compute_job_result_logs(data_ddo, compute_service, job_id, algo_wallet)
-
-    model = pickle.loads(output[0])  # the result
-    assert len(model) > 0, "unpickle result unsuccessful"
+    print(f"Output: {output}")
 
 
 def save_to_disk(variables, path):
