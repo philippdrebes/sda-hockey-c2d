@@ -27,7 +27,7 @@ def publish_algo(from_wallet):
                                                                 url="https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/algos/example_algo.py",
                                                                 tx_dict={"from": from_wallet},
                                                                 image="ghcr.io/philippdrebes/sda-hockey-c2d",
-                                                                checksum="sha256:d91a2fe9524c679a920b39f4f2070180bf4a8321438ca2b8353b2ca64106fd19",
+                                                                checksum="sha256:6016ef907090714af58bff3bc7e421659b82ee46a89537743d5b430392aafcb2",
                                                                 tag="main",
                                                                 wait_for_aqua=True)
 
