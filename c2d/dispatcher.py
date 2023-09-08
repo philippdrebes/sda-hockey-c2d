@@ -24,7 +24,7 @@ def publish_data(from_wallet, data_url):
 
 def publish_algo(from_wallet):
     (data_nft, datatoken, ddo) = ocean.assets.create_algo_asset("Ice Hockey Algo",
-                                                                url="https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/algos/example_algo.py",
+                                                                url="https://raw.githubusercontent.com/philippdrebes/sda-hockey-c2d/main/algos/hockey.py",
                                                                 tx_dict={"from": from_wallet},
                                                                 image="ghcr.io/philippdrebes/sda-hockey-c2d",
                                                                 checksum="sha256:6016ef907090714af58bff3bc7e421659b82ee46a89537743d5b430392aafcb2",
