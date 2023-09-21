@@ -38,7 +38,7 @@ allows for data analysis without needing direct access to the sensitive player d
   specifically for our project.
 
 - `main.py`: The central entry point of the project. This script is responsible for the orchestration of the primary
-  compute-to-data tasks:
+  compute to data tasks:
     - Publishing the algorithm and data onto the blockchain.
     - Initiating a compute job that executes the algorithm on the provided data.
     - Retrieving the results post-computation.
