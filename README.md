@@ -12,20 +12,15 @@ allows for data analysis without needing direct access to the sensitive player d
 
 ### File/Folder Descriptions
 
-- **Dockerfile**: In the compute to data space, every algorithm runs within a Docker container to ensure consistency and
-  reproducibility. While there are default images provided for this purpose, there are instances where the dependencies
-  and configurations required for a project might not be available in these default images. This is where our custom
-  Docker image comes into play. The `Dockerfile` contains instructions to build our own Docker image, tailored
-  specifically for our project.
-
 - **algos**:
     - `hockey.py`: Contains the algorithm for our hockey data analysis. This algorithm is published on the blockchain
       and runs in the compute to data environment.
 
 - **c2d**:
-    - `dispatcher.py`: This is a helper file containing functions crucial for the compute to data workflow. It has functionalities to:
-      - Publish the data and the algorithm onto the blockchain.
-      - Allow the algorithm to execute on the data.
+    - `dispatcher.py`: This is a helper file containing functions crucial for the compute to data workflow. It has
+      functionalities to:
+        - Publish the data and the algorithm onto the blockchain.
+        - Allow the algorithm to execute on the data.
 
 - **notebooks**: Contains Jupyter Notebooks that were used during the development and exploratory phase of the project.
     - `data_per_period.ipynb`: Explores and analyzes the data on a period-by-period basis.
@@ -34,12 +29,19 @@ allows for data analysis without needing direct access to the sensitive player d
 
 - `example.env`: An example environment file showcasing the environment variables required to run the project.
 
-- `main.py`: The central entry point of the project. This script is responsible for the orchestration of the primary compute-to-data tasks:
-  - Publishing the algorithm and data onto the blockchain.
-  - Initiating a compute job that executes the algorithm on the provided data.
-  - Retrieving the results post-computation.
-
 - `requirements.txt`: Contains a list of necessary Python packages required to run the project.
+
+- `Dockerfile`: In the compute to data space, every algorithm runs within a Docker container to ensure consistency and
+  reproducibility. While there are default images provided for this purpose, there are instances where the dependencies
+  and configurations required for a project might not be available in these default images. This is where our custom
+  Docker image comes into play. The `Dockerfile` contains instructions to build our own Docker image, tailored
+  specifically for our project.
+
+- `main.py`: The central entry point of the project. This script is responsible for the orchestration of the primary
+  compute-to-data tasks:
+    - Publishing the algorithm and data onto the blockchain.
+    - Initiating a compute job that executes the algorithm on the provided data.
+    - Retrieving the results post-computation.
 
 ## Getting Started
 
