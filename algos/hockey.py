@@ -59,6 +59,8 @@ def get_input(local=False):
 
 
 def prepare_for_visualization(player_id, strengths_dict, weaknesses_dict, avg_player, agg_df):
+    print('preparing visualization')
+
     # filter dictionaries based on input variable
     player_strengths = strengths_dict[player_id]
     player_weaknesses = weaknesses_dict[player_id]
@@ -80,7 +82,7 @@ def prepare_for_visualization(player_id, strengths_dict, weaknesses_dict, avg_pl
     relevant_players = filtered_df["Player ID"].tolist()
     condition2 = agg_df["Player ID"].isin(relevant_players)
     filtered_df2 = agg_df[condition2]
-    row_sums = agg_df.iloc[:, 1:].sum(axis=1)
+    row_sums = filtered_df2.iloc[:, 1:].sum(axis=1)
     max_row_index = row_sums.idxmax()
     player_id_with_highest_sum = agg_df.loc[max_row_index, 'Player ID']
     bestval1 = agg_df.loc[agg_df['Player ID'] == player_id_with_highest_sum, player_df.columns[1]].values[0]
@@ -91,15 +93,16 @@ def prepare_for_visualization(player_id, strengths_dict, weaknesses_dict, avg_pl
     bestval6 = agg_df.loc[agg_df['Player ID'] == player_id_with_highest_sum, player_df.columns[6]].values[0]
     best_player_row = pd.Series(["Best Player", bestval1, bestval2, bestval3, bestval4, bestval5, bestval6],
                                 index=player_df.columns)
-    player_df = player_df.append(best_player_row, ignore_index=True)
+    player_df = pd.concat([player_df, pd.DataFrame([best_player_row])], ignore_index=True)
     # add row to dataframe with reference values (reference values are always 1)
     new_row = pd.Series(["avg. Position value", 1, 1, 1, 1, 1, 1], index=player_df.columns)
-    player_df = player_df.append(new_row, ignore_index=True)
+    player_df = pd.concat([player_df, pd.DataFrame([new_row])], ignore_index=True)
 
     return player_df
 
 
-def visualization(player_df):
+def visualization(player_df, output_dir):
+    print('visualizing')
     BG_WHITE = "#fbf9f4"
     BLUE = "#2a475e"
     GREY70 = "#b3b3b3"
@@ -142,16 +145,19 @@ def visualization(player_df):
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
 
-    # Setting lower limit to negative value reduces overlap
-    # for values that are 0 (the minimums)
-    ax.set_ylim(0.8, 1.15)
-
     # Plot lines and dots --------------------------------------------
+    all_values = []
     for idx, species in enumerate(CATEGORIES):
         values = player_df.iloc[idx].drop("Player ID").values.tolist()
         values += values[:1]
         ax.plot(ANGLES, values, c=COLORS[idx], linewidth=4, label=species)
         ax.scatter(ANGLES, values, s=160, c=COLORS[idx], zorder=10)
+        for value in values:
+            all_values.append(value)
+
+    all_values.sort()
+    # setting limits for y axis
+    ax.set_ylim(all_values[0] * 0.9, all_values[-1] * 1.1)
 
     # Set values for the angular axis (x)
     ax.set_xticks(ANGLES[:-1])
@@ -187,7 +193,7 @@ def visualization(player_df):
     for text in legend.get_texts():
         text.set_fontsize(16)
 
-    # Add title
+        # Add title
     fig.suptitle(
         "Radar Plot of Top 3 Player strengths and weaknesses compared to the average and the best player of his Position group",
         x=0.1,
@@ -198,11 +204,12 @@ def visualization(player_df):
         weight="bold",
     )
 
-    fig.savefig('/data/outputs/radarplot.png', bbox_inches='tight')
+    fig.savefig(os.path.join(output_dir, "radarplot.png"), bbox_inches='tight')
     plt.close(fig)
 
 
-def description(player_df, avg_player):
+def description(player_df, avg_player, output_dir):
+    print('creating description')
     # get player id of current player
     player_id = player_df.at[0, "Player ID"]
     # get strengths and weaknesses (text, values and relative values)
@@ -210,32 +217,32 @@ def description(player_df, avg_player):
     strengths1_value = "{:.2f}".format(
         avg_player.loc[avg_player['Player ID'] == player_id, player_df.columns[1]].values[0])
     strenghts1_relative = "{:.2f}".format(
-        (player_df.loc[avg_player['Player ID'] == player_id, player_df.columns[1]].values[0] - 1) * 100)
+        (player_df.loc[player_df['Player ID'] == player_id, player_df.columns[1]].values[0] - 1) * 100)
     strengths2_text = player_df.columns[2]
     strengths2_value = "{:.2f}".format(
         avg_player.loc[avg_player['Player ID'] == player_id, player_df.columns[2]].values[0])
     strenghts2_relative = "{:.2f}".format(
-        (player_df.loc[avg_player['Player ID'] == player_id, player_df.columns[2]].values[0] - 1) * 100)
+        (player_df.loc[player_df['Player ID'] == player_id, player_df.columns[2]].values[0] - 1) * 100)
     strengths3_text = player_df.columns[3]
     strengths3_value = "{:.2f}".format(
         avg_player.loc[avg_player['Player ID'] == player_id, player_df.columns[3]].values[0])
     strenghts3_relative = "{:.2f}".format(
-        (player_df.loc[avg_player['Player ID'] == player_id, player_df.columns[3]].values[0] - 1) * 100)
+        (player_df.loc[player_df['Player ID'] == player_id, player_df.columns[3]].values[0] - 1) * 100)
     weakness1_text = player_df.columns[4]
     weakness1_value = "{:.2f}".format(
         avg_player.loc[avg_player['Player ID'] == player_id, player_df.columns[4]].values[0])
     weakness1_relative = "{:.2f}".format(
-        (1 - player_df.loc[avg_player['Player ID'] == player_id, player_df.columns[4]].values[0]) * 100)
+        (1 - player_df.loc[player_df['Player ID'] == player_id, player_df.columns[4]].values[0]) * 100)
     weakness2_text = player_df.columns[5]
     weakness2_value = "{:.2f}".format(
         avg_player.loc[avg_player['Player ID'] == player_id, player_df.columns[5]].values[0])
     weakness2_relative = "{:.2f}".format(
-        (1 - player_df.loc[avg_player['Player ID'] == player_id, player_df.columns[5]].values[0]) * 100)
+        (1 - player_df.loc[player_df['Player ID'] == player_id, player_df.columns[5]].values[0]) * 100)
     weakness3_text = player_df.columns[6]
     weakness3_value = "{:.2f}".format(
         avg_player.loc[avg_player['Player ID'] == player_id, player_df.columns[6]].values[0])
     weakness3_relative = "{:.2f}".format(
-        (1 - player_df.loc[avg_player['Player ID'] == player_id, player_df.columns[6]].values[0]) * 100)
+        (1 - player_df.loc[player_df['Player ID'] == player_id, player_df.columns[6]].values[0]) * 100)
     # create string
     description = f"""
     Your three biggest strengths are:
@@ -247,97 +254,191 @@ def description(player_df, avg_player):
     \t2. {weakness2_text} with an absolute value of {weakness2_value} which is {weakness2_relative}% lower than the average of your Position group.
     \t3. {weakness3_text} with an absolute value of {weakness3_value} which is {weakness3_relative}% lower than the average of your Position group.
     """
+
     # Specify the file path where you want to save the text document
-    file_path = "/data/outputs/description.txt"
+    file_path = os.path.join(output_dir, "description.txt")
     # Open the file in write mode ('w')
     with open(file_path, 'w') as file:
         # Write the string data to the file
         file.write(description)
 
 
+def strength_weakness(player_id, data, output_dir):
+    print('analyzing overall strength and weakness for player id {}'.format(player_id))
+    try:
+        condition = data['Types'] == "Match"
+        match_data = data[condition]
+        match_data = match_data[
+            ['Player ID', 'Position', 'Distance / min (m)', 'High Metabolic Power Distance / min (m)',
+             'Acceleration Load (max.)', 'Speed (max.) (km/h)', 'Speed (Ø) (km/h)',
+             'Acceleration (max.) (m/s²)', 'Deceleration (max.) (m/s²)', 'Accelerations / min',
+             'Decelerations / min']]
+
+        avg_player = match_data.groupby(['Player ID', 'Position'], as_index=False).mean()
+        avg_position = match_data.groupby('Position', as_index=False).mean()
+        avg_position = avg_position.drop("Player ID", axis=1)
+
+        rows = avg_player.shape[0]
+        values = []
+
+        for i in range(rows):
+            dict_values = {}
+            pos = avg_player.at[i, "Position"]
+            dict_values["Player ID"] = avg_player.at[i, "Player ID"]
+            for col in avg_player.columns:
+                if col != "Player ID" and col != "Position":
+                    relative = avg_player.at[i, col] / avg_position.loc[avg_position['Position'] == pos, col].values[0]
+                    dict_values[col] = relative
+            values.append(dict_values)
+
+        agg_df = pd.DataFrame(values)
+
+        cols_for_evaluation = [col for col in agg_df.columns if col != "Player ID"]
+
+        # Perform the nlargest calculation on the other columns
+        strengths_df = (agg_df[cols_for_evaluation]
+                        .stack()
+                        .groupby(level=0)
+                        .nlargest(3)
+                        .unstack()
+                        .reset_index(level=1, drop=True)
+                        .reindex(columns=cols_for_evaluation))
+
+        # Reinsert the "Player ID" column into strengths_df
+        strengths_df.insert(0, 'Player ID', agg_df['Player ID'])
+
+        # Perform the nlargest calculation on the other columns
+        weaknesses_df = (agg_df[cols_for_evaluation]
+                         .stack()
+                         .groupby(level=0)
+                         .nsmallest(3)
+                         .unstack()
+                         .reset_index(level=1, drop=True)
+                         .reindex(columns=cols_for_evaluation))
+
+        # Reinsert the "Player ID" column into strengths_df
+        weaknesses_df.insert(0, 'Player ID', agg_df['Player ID'])
+
+        rows = strengths_df.shape[0]
+
+        strengths_dict = {}
+        weaknesses_dict = {}
+
+        for i in range(rows):
+            strengths_dict[strengths_df.at[i, "Player ID"]] = {}
+            for col in strengths_df.columns:
+                if col != "Player ID" and not np.isnan(strengths_df.loc[i, col]):
+                    strengths_dict[strengths_df.at[i, "Player ID"]][col] = strengths_df.at[i, col]
+
+        for i in range(rows):
+            weaknesses_dict[weaknesses_df.at[i, "Player ID"]] = {}
+            for col in weaknesses_df.columns:
+                if col != "Player ID" and not np.isnan(weaknesses_df.loc[i, col]):
+                    weaknesses_dict[weaknesses_df.at[i, "Player ID"]][col] = weaknesses_df.at[i, col]
+
+        player_df = prepare_for_visualization(player_id, strengths_dict, weaknesses_dict, avg_player, agg_df)
+        visualization(player_df, output_dir)
+        description(player_df, avg_player, output_dir)
+    except Exception as e:
+        print(e)
+
+
+def per_period(player_id, session_id, data, output_dir):
+    print('analyzing per period performance for player id {}'.format(player_id))
+    try:
+        condition = data['Types'] == "Period"
+        match_data = data[condition]
+        match_data = match_data[['Player ID', 'Description', 'Session ID', 'Position', 'Distance / min (m)',
+                                 'High Metabolic Power Distance / min (m)', 'Acceleration Load (max.)',
+                                 'Speed (max.) (km/h)', 'Speed (Ø) (km/h)', 'Acceleration (max.) (m/s²)',
+                                 'Deceleration (max.) (m/s²)', 'Accelerations / min', 'Decelerations / min']]
+
+        player_data = match_data
+        avg_position = match_data.groupby(['Position', 'Session ID', 'Description'], as_index=False).mean()
+        avg_position["Player ID"] = "avg of Position"
+
+        # prepare visualization
+        condition1 = player_data['Player ID'] == player_id
+        condition2 = player_data['Session ID'] == session_id
+        filtered_player_df = player_data[condition1 & condition2]
+        position = player_data.loc[player_data['Player ID'] == player_id, 'Position'].values[0]
+        condition_pos = avg_position["Position"] == position
+        condition_pos2 = avg_position["Session ID"] == session_id
+        filtered_pos_df = avg_position[condition_pos & condition_pos2]
+        column_order = filtered_player_df.columns
+        filtered_pos_df = filtered_pos_df[column_order]
+        visualization_df = pd.concat([filtered_player_df, filtered_pos_df], ignore_index=True)
+
+        # create subplot grid
+        cols_not_needed = ["Player ID", "Description", "Session ID", "Position"]
+        METRICS = [col for col in visualization_df.columns if col not in cols_not_needed]
+        METRIC = METRICS[0]
+        PLAYERS = visualization_df["Player ID"].unique()
+        PLAYER = PLAYERS[0]
+        # Get the metric columns
+        metric_columns = METRICS
+
+        # Get unique IDs from the 'Player ID' column
+        unique_ids = visualization_df['Player ID'].unique()
+
+        # Create a subplot grid based on the number of metric columns
+        num_metrics = len(metric_columns)
+        num_rows = (num_metrics + 2) // 3
+        num_cols = min(num_metrics, 3)
+
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, 5 * num_rows))
+
+        for idx, metric_col in enumerate(metric_columns):
+            row = idx // num_cols
+            col = idx % num_cols
+
+            for unique_id in unique_ids:
+                id_filter = visualization_df['Player ID'] == unique_id
+                data = visualization_df[id_filter][['Description', metric_col]]
+
+                ax = axes[row, col] if num_metrics > 1 else axes
+                if unique_id == PLAYER:
+                    # Highlight points for ID = selected player with dots and labels
+                    ax.plot(data['Description'], data[metric_col], label=f'{unique_id}', color="#0b53c1", lw=2.4,
+                            zorder=10)
+                    ax.scatter(data['Description'], data[metric_col], fc="w", ec="#0b53c1", s=60, lw=2.4, zorder=12)
+                else:
+                    # Plot other IDs normally
+                    ax.plot(data['Description'], data[metric_col], label=f'{unique_id}', color="#BFBFBF", lw=1.5)
+
+                ax.set_title(metric_col)
+                ax.set_xlabel('Description')
+                ax.set_ylabel('Value')
+                ax.legend()
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'linechart.png'))
+        plt.close()
+    except Exception as e:
+        print(e)
+
+
 def main(job_details, local=False):
     print('Starting compute job with the following input information:')
-    # print(json.dumps(job_details, sort_keys=True, indent=4))
+    if job_details is not None:
+        print(json.dumps(job_details, sort_keys=True, indent=4))
 
     filename = get_input(local)
     if not filename:
         print("Could not retrieve filename.")
         return
 
-    data = pd.read_csv(filename, sep=",")
-    data = data.drop("Unnamed: 0", axis=1)
+    data = pd.read_csv(filename, sep=";", encoding_errors="ignore")
 
-    avg_player = data.groupby(['Player ID', 'Position'], as_index=False).mean()
-    avg_player = avg_player.drop("Group Id", axis=1)
+    for player_id in data['Player ID'].unique():
+        output_dir = "./outputs/{}".format(player_id) if local else "/data/outputs/{}".format(player_id)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
-    avg_position = data.groupby('Position', as_index=False).mean()
-    avg_position = avg_position.drop("Group Id", axis=1).drop("Player ID", axis=1)
+        strength_weakness(player_id, data, output_dir)
+        per_period(player_id, 234, data, output_dir)
 
-    rows = avg_player.shape[0]
-    values = []
-
-    for i in range(rows):
-        dict_values = {}
-        pos = avg_player.at[i, "Position"]
-        dict_values["Player ID"] = avg_player.at[i, "Player ID"]
-        for col in avg_player.columns:
-            if col != "Player ID" and col != "Position":
-                relative = avg_player.at[i, col] / avg_position.at[pos - 1, col]
-                dict_values[col] = relative
-        values.append(dict_values)
-
-    agg_df = pd.DataFrame(values)
-
-    cols_for_evaluation = [col for col in agg_df.columns if col != "Player ID"]
-
-    # Perform the nlargest calculation on the other columns
-    strengths_df = (agg_df[cols_for_evaluation]
-                    .stack()
-                    .groupby(level=0)
-                    .nlargest(3)
-                    .unstack()
-                    .reset_index(level=1, drop=True)
-                    .reindex(columns=cols_for_evaluation))
-
-    # Reinsert the "Player ID" column into strengths_df
-    strengths_df.insert(0, 'Player ID', agg_df['Player ID'])
-
-    # Perform the nlargest calculation on the other columns
-    weaknesses_df = (agg_df[cols_for_evaluation]
-                     .stack()
-                     .groupby(level=0)
-                     .nsmallest(3)
-                     .unstack()
-                     .reset_index(level=1, drop=True)
-                     .reindex(columns=cols_for_evaluation))
-
-    # Reinsert the "Player ID" column into strengths_df
-    weaknesses_df.insert(0, 'Player ID', agg_df['Player ID'])
-
-    rows = strengths_df.shape[0]
-
-    strengths_dict = {}
-    weaknesses_dict = {}
-
-    for i in range(rows):
-        strengths_dict[strengths_df.at[i, "Player ID"]] = {}
-        for col in strengths_df.columns:
-            if col != "Player ID" and not np.isnan(strengths_df.loc[i, col]):
-                strengths_dict[strengths_df.at[i, "Player ID"]][col] = strengths_df.at[i, col]
-
-    for i in range(rows):
-        weaknesses_dict[weaknesses_df.at[i, "Player ID"]] = {}
-        for col in weaknesses_df.columns:
-            if col != "Player ID" and not np.isnan(weaknesses_df.loc[i, col]):
-                weaknesses_dict[weaknesses_df.at[i, "Player ID"]][col] = weaknesses_df.at[i, col]
-
-    player_df = prepare_for_visualization(63, strengths_dict, weaknesses_dict, avg_player, agg_df)
-    visualization(player_df)
-    description(player_df, avg_player)
-
-    filename = "gpr.pickle" if local else "/data/outputs/result"
-    with open(filename, "wb") as pickle_file:
-        print(f"Saving results in {filename}")
+    print('Done!')
 
 
 if __name__ == '__main__':
