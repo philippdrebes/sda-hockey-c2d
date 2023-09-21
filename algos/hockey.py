@@ -42,7 +42,7 @@ def get_job_details():
 def get_input(local=False):
     if local:
         print("Reading local file")
-        return "../data/dummy_data_complete.csv"
+        return "data/data.csv"
 
     dids = os.getenv("DIDS", None)
 
