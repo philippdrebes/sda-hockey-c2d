@@ -48,5 +48,5 @@ allows for data analysis without needing direct access to the sensitive player d
 1. Clone this repository to your local machine.
 2. Install the required packages using: `pip install -r requirements.txt`.
 3. Follow the [ocean protocol remote setup](https://github.com/oceanprotocol/ocean.py/blob/8725f525e5184bc67cde0e50dd831357b54c8691/READMEs/setup-remote.md)
-4. Navigate to the main directory and run: `python main.py`.
+4. Navigate to the main directory and run: `python main.py -p`.
 
